@@ -73,7 +73,8 @@ t = ers(t, '<script src="../lib/supabase.js"></script>\n', '')
 # Farben aus dem Fati-Logo statt Nasuvia-Blau
 FARBEN = [('#1C2A7B', '#0A4F4E'), ('#3B55E6', '#0E7C7B'), ('#0C1226', '#10242C'),
           ('rgba(28, 42, 123', 'rgba(10, 79, 78'), ('rgba(59, 85, 230', 'rgba(14, 124, 123'),
-          ('rgba(28,42,123', 'rgba(10,79,78'), ('rgba(59,85,230', 'rgba(14,124,123')]
+          ('rgba(28,42,123', 'rgba(10,79,78'), ('rgba(59,85,230', 'rgba(14,124,123'),
+          ('%233B55E6', '%230E7C7B'), ('%231C2A7B', '%230A4F4E')]
 for alt, neu in FARBEN:
     t = t.replace(alt, neu).replace(alt.lower(), neu)
 (ZIEL / 'index.html').write_text(t)
