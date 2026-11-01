@@ -82,7 +82,7 @@
   }
 
   // Wie der Mac-Dienst: eine Nummer steht für genau eine Rechnung
-  async function eintragen(daten, blob, gesendet) {
+  async function eintragen(daten, blob, gesendet, an) {
     const datei = dateiname(daten);
     const nr = String(daten.nr || '').trim();
     const liste = await gueltig('rechnung');
@@ -93,8 +93,10 @@
       kunde: daten.kundeName || '', empfaenger: daten.empfName || '',
       datum: daten.datum || heute(), faellig: daten.faellig || '',
       betragRappen: parseInt(daten.totalRappen, 10) || 0, mwstRappen: parseInt(daten.mwstRappen, 10) || 0,
-      erstellt: jetzt(), daten: nurDaten(daten),
+      erstellt: (vorher && vorher.erstellt) || jetzt(), zuletztGesichert: jetzt(), daten: nurDaten(daten),
       gesendet: !!(gesendet || (vorher && vorher.gesendet)),
+      gesendetAm: gesendet ? jetzt() : ((vorher && vorher.gesendetAm) || ''),
+      gesendetAn: gesendet ? (an || '') : ((vorher && vorher.gesendetAn) || ''),
       bezahlt: !!(vorher && vorher.bezahlt), bezahltAm: (vorher && vorher.bezahltAm) || '',
     };
     await speichern('rechnung', [...ersetzt, eintrag]);
@@ -250,12 +252,12 @@
       }
       case '/api/mail': {
         let e, blob;
-        if (d.pdfErzeugen || !d.pdfPfad) { blob = await blattAlsPdf(); e = await eintragen(d, blob, true); }
+        if (d.pdfErzeugen || !d.pdfPfad) { blob = await blattAlsPdf(); e = await eintragen(d, blob, true, d.an); }
         else {
           e = await nachDatei(String(d.pdfPfad).replace(PFAD, ''));
           if (!e) return fehler('Rechnung nicht gefunden.');
           blob = await pdfHolen(e);
-          await speichern('rechnung', [{ ...e, gesendet: true }]);
+          await speichern('rechnung', [{ ...e, gesendet: true, gesendetAm: jetzt(), gesendetAn: d.an || e.gesendetAn || '' }]);
         }
         if (!blob) return fehler('Das PDF ist auf diesem Gerät noch nicht da. Bitte kurz warten, bis der Abgleich fertig ist.', 500);
         pdfZeigen(blob, e.datei, { an: d.an, betreff: d.betreff, text: d.text });
@@ -465,6 +467,162 @@
     d.querySelector('[data-ab]').onclick = async () => { await sb.auth.signOut(); setz(K_SEIT, null); setz(K_ZULETZT, null); d.close(); };
     d.querySelector('[data-import]').onclick = () => { d.close(); importieren(); };
   }
+
+  /* ---------- Übersicht: was gespeichert, gesendet und bezahlt ist ---------- */
+  const stilUebersicht = document.createElement('style');
+  stilUebersicht.textContent = `
+    .nr-ue-knopf{display:inline-flex;align-items:center;gap:7px;margin-left:auto;border:0;cursor:pointer;font:600 .9rem inherit;font-family:inherit;color:#fff;background:linear-gradient(135deg,#3B55E6,#1C2A7B);border-radius:100px;padding:9px 15px;box-shadow:0 6px 16px -8px rgba(28,42,123,.7)}
+    .nr-ue-knopf svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .nr-ue{border:0;padding:0;width:min(920px,calc(100% - 24px));max-height:calc(100vh - 32px);border-radius:20px;box-shadow:0 40px 100px -30px rgba(12,18,38,.5);color:#0C1226;font-family:inherit}
+    .nr-ue::backdrop{background:rgba(12,18,38,.35)}
+    .nr-ue-innen{display:flex;flex-direction:column;max-height:calc(100vh - 32px)}
+    .nr-ue-kopf{padding:20px 22px 12px;border-bottom:1px solid rgba(28,42,123,.1)}
+    .nr-ue-kopf .zeile1{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .nr-ue-kopf h3{margin:0;font-size:1.35rem}
+    .nr-ue-zu{border:0;background:#EEF1F8;border-radius:100px;width:36px;height:36px;font-size:1.2rem;cursor:pointer;color:#1C2A7B}
+    .nr-ue-summen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0 12px}
+    .nr-ue-summen div{background:#F6F8FC;border-radius:12px;padding:10px 12px}
+    .nr-ue-summen b{display:block;font-size:1.05rem}
+    .nr-ue-summen span{font-size:.78rem;color:#47506B}
+    .nr-ue-filter{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+    .nr-ue-filter::-webkit-scrollbar{display:none}
+    .nr-ue-filter button{border:1.5px solid rgba(28,42,123,.15);background:#fff;border-radius:100px;padding:7px 12px;font:500 .86rem inherit;font-family:inherit;white-space:nowrap;cursor:pointer;color:#0C1226}
+    .nr-ue-filter button.an{border-color:#3B55E6;background:rgba(59,85,230,.08);color:#1C2A7B;font-weight:600}
+    .nr-ue-suche{width:100%;box-sizing:border-box;margin-top:10px;font:inherit;font-size:16px;padding:10px 12px;border:1.5px solid rgba(28,42,123,.15);border-radius:10px}
+    .nr-ue-liste{overflow-y:auto;padding:12px 22px 22px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+    .nr-ue-karte{border:1px solid rgba(28,42,123,.1);border-radius:14px;padding:14px 16px}
+    .nr-ue-karte .oben{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+    .nr-ue-karte .oben b{font-size:1.02rem}
+    .nr-ue-karte .oben .betrag{font-weight:700;white-space:nowrap}
+    .nr-ue-karte .klein{font-size:.85rem;color:#47506B;margin-top:2px}
+    .nr-ue-weg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:12px 0 10px}
+    .nr-ue-schritt{border-radius:10px;padding:8px 10px;background:#F6F8FC;font-size:.8rem;line-height:1.35;color:#47506B}
+    .nr-ue-schritt b{display:flex;align-items:center;gap:6px;font-size:.84rem;color:#0C1226;margin-bottom:2px}
+    .nr-ue-schritt b i{width:16px;height:16px;border-radius:50%;flex:none;background:#E3E8F4}
+    .nr-ue-schritt.ja{background:rgba(14,159,110,.08)}
+    .nr-ue-schritt.ja b i{background:#0E9F6E url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 8.5l2.2 2.2L11.5 6' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% no-repeat}
+    .nr-ue-schritt.warn{background:rgba(229,72,77,.08)}
+    .nr-ue-schritt.warn b i{background:#E5484D}
+    .nr-ue-schritt span{display:block;word-break:break-word}
+    .nr-ue-knoepfe{display:flex;gap:6px;flex-wrap:wrap}
+    .nr-ue-knoepfe button{border:0;border-radius:9px;padding:8px 12px;font:600 .84rem inherit;font-family:inherit;cursor:pointer;background:#EEF1F8;color:#1C2A7B}
+    .nr-ue-knoepfe button.gruen{background:rgba(14,159,110,.12);color:#0A7150}
+    .nr-ue-leer{text-align:center;color:#47506B;padding:30px 10px}
+    @media (max-width:640px){
+      .nr-ue{width:100%;max-width:100%;height:100%;max-height:100%;margin:0;border-radius:0}
+      .nr-ue-innen{max-height:100%;height:100%}
+      .nr-ue-kopf{padding:calc(14px + env(safe-area-inset-top)) 16px 10px}
+      .nr-ue-liste{padding:10px 16px calc(24px + env(safe-area-inset-bottom))}
+      .nr-ue-summen{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .nr-ue-weg{grid-template-columns:minmax(0,1fr)}
+      .nr-ue-schritt{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+      .nr-ue-schritt b{margin:0}
+    }
+  `;
+  document.head.appendChild(stilUebersicht);
+
+  const chfText = (r) => 'CHF ' + ((r || 0) / 100).toLocaleString('de-CH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const datumText = (iso) => iso ? new Date(iso.length <= 10 ? iso + 'T12:00:00' : iso).toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+  const zeitText = (iso) => iso && iso.length > 10 ? datumText(iso) + ', ' + new Date(iso).toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' }) : datumText(iso);
+  // Empfängeradresse: beim Versand gemerkt, sonst die beim Kunden hinterlegte
+  const adresseVon = (r) => {
+    if (r.gesendetAn) return r.gesendetAn;
+    const d = r.daten || {};
+    const k = (d.kunden || []).find((x) => x.id === d.kundeId);
+    return (k && k.mail) || '';
+  };
+  const ueberfaellig = (r) => !r.bezahlt && r.faellig && r.faellig < heute();
+
+  let ueFilter = 'alle', ueSuche = '';
+  async function uebersichtZeigen() {
+    const d = dialog('');
+    d.className = 'nr-ue';
+    d.innerHTML = `<div class="nr-ue-innen">
+      <div class="nr-ue-kopf">
+        <div class="zeile1"><h3>Alle Rechnungen</h3><button class="nr-ue-zu" data-zu aria-label="Schliessen">×</button></div>
+        <div class="nr-ue-summen" data-summen></div>
+        <div class="nr-ue-filter" data-filter>
+          <button data-f="alle">Alle</button><button data-f="nichtGesendet">Nicht gesendet</button><button data-f="gesendet">Gesendet, offen</button><button data-f="ueberfaellig">Überfällig</button><button data-f="bezahlt">Bezahlt</button>
+        </div>
+        <input class="nr-ue-suche" type="search" placeholder="Suchen: Nummer, Kunde oder E-Mail" data-suche value="${esc(ueSuche)}">
+      </div>
+      <div class="nr-ue-liste" data-liste></div>
+    </div>`;
+    d.querySelector('[data-zu]').onclick = () => d.close();
+
+    async function zeichnen() {
+      const alle_ = (await gueltig('rechnung')).sort((a, b) => (b.datum || '').localeCompare(a.datum || '') || String(b.nr).localeCompare(String(a.nr), 'de', { numeric: true }));
+      const offen = alle_.filter((r) => !r.bezahlt), ueber = alle_.filter(ueberfaellig);
+      const summe = (l) => l.reduce((s, r) => s + (r.betragRappen || 0), 0);
+      d.querySelector('[data-summen]').innerHTML =
+        `<div><b>${alle_.length}</b><span>Rechnungen</span></div>` +
+        `<div><b>${alle_.filter((r) => !r.gesendet).length}</b><span>Nicht gesendet</span></div>` +
+        `<div><b>${chfText(summe(offen))}</b><span>Offen${ueber.length ? `, davon ${ueber.length} überfällig` : ''}</span></div>` +
+        `<div><b>${chfText(summe(alle_.filter((r) => r.bezahlt)))}</b><span>Bezahlt</span></div>`;
+      d.querySelectorAll('[data-f]').forEach((b) => b.classList.toggle('an', b.getAttribute('data-f') === ueFilter));
+      const s = ueSuche.trim().toLowerCase();
+      const liste = alle_.filter((r) => ({
+        alle: true, nichtGesendet: !r.gesendet, gesendet: r.gesendet && !r.bezahlt, ueberfaellig: ueberfaellig(r), bezahlt: r.bezahlt,
+      })[ueFilter]).filter((r) => !s || [r.nr, r.kunde, r.empfaenger, adresseVon(r)].join(' ').toLowerCase().includes(s));
+      const box = d.querySelector('[data-liste]');
+      if (!liste.length) { box.innerHTML = `<p class="nr-ue-leer">${alle_.length ? 'Keine Rechnung passt zu dieser Auswahl.' : 'Noch keine Rechnungen gespeichert.'}</p>`; return; }
+      box.innerHTML = liste.map((r) => {
+        const an = adresseVon(r);
+        const gesendetText = !r.gesendet ? 'Noch nicht gesendet'
+          : (r.gesendetAm ? zeitText(r.gesendetAm) : 'Ja') + (an ? `<span>an ${esc(an)}</span>` : '');
+        const bezahltText = r.bezahlt ? (r.bezahltAm ? datumText(r.bezahltAm) : 'Ja')
+          : ueberfaellig(r) ? `Überfällig seit ${datumText(r.faellig)}` : (r.faellig ? `Fällig am ${datumText(r.faellig)}` : 'Offen');
+        return `<div class="nr-ue-karte" data-datei="${esc(r.datei)}">
+          <div class="oben"><b>Nr. ${esc(r.nr || '?')} · ${esc(r.kunde || 'Ohne Kunde')}</b><span class="betrag">${chfText(r.betragRappen)}</span></div>
+          <div class="klein">Rechnung vom ${datumText(r.datum)}${r.empfaenger ? ' · Zahlung an ' + esc(r.empfaenger) : ''}</div>
+          <div class="nr-ue-weg">
+            <div class="nr-ue-schritt ja"><b><i></i>Gespeichert</b><span>${zeitText(r.zuletztGesichert || r.erstellt)}</span></div>
+            <div class="nr-ue-schritt ${r.gesendet ? 'ja' : ''}"><b><i></i>Gesendet</b><span>${gesendetText}</span></div>
+            <div class="nr-ue-schritt ${r.bezahlt ? 'ja' : ueberfaellig(r) ? 'warn' : ''}"><b><i></i>Bezahlt</b><span>${bezahltText}</span></div>
+          </div>
+          <div class="nr-ue-knoepfe">
+            <button data-a="pdf">PDF ansehen</button>
+            <button data-a="bearbeiten">Bearbeiten</button>
+            <button data-a="bezahlt" class="${r.bezahlt ? '' : 'gruen'}">${r.bezahlt ? 'Wieder offen' : 'Als bezahlt markieren'}</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    d.querySelector('[data-filter]').onclick = (e) => { const b = e.target.closest('[data-f]'); if (b) { ueFilter = b.getAttribute('data-f'); zeichnen(); } };
+    d.querySelector('[data-suche]').oninput = (e) => { ueSuche = e.target.value; zeichnen(); };
+    d.querySelector('[data-liste]').onclick = async (e) => {
+      const b = e.target.closest('[data-a]'); if (!b) return;
+      const r = await nachDatei(b.closest('[data-datei]').getAttribute('data-datei'));
+      if (!r) return;
+      const a = b.getAttribute('data-a');
+      if (a === 'pdf') {
+        const blob = await pdfHolen(r);
+        if (blob) pdfZeigen(blob, r.datei);
+        else alert('Das PDF ist auf diesem Gerät noch nicht da. Bitte kurz warten, bis der Abgleich fertig ist.');
+      } else if (a === 'bearbeiten') {
+        d.close();
+        if (window.__nasuvia && window.__nasuvia.rechnungOeffnen) window.__nasuvia.rechnungOeffnen(r.datei);
+      } else if (a === 'bezahlt') {
+        await speichern('rechnung', [{ ...r, bezahlt: !r.bezahlt, bezahltAm: r.bezahlt ? '' : heute() }]);
+        if (window.__nasuvia && window.__nasuvia.listenNeu) window.__nasuvia.listenNeu();
+        zeichnen();
+      }
+    };
+    zeichnen();
+  }
+
+  function uebersichtKnopf() {
+    const kopf = document.querySelector('.panel-head');
+    if (!kopf || kopf.querySelector('.nr-ue-knopf')) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'nr-ue-knopf';
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Übersicht';
+    b.onclick = uebersichtZeigen;
+    kopf.appendChild(b);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', uebersichtKnopf); else uebersichtKnopf();
 
   /* ---------- Bisherige Rechnungen aus der Mac-App übernehmen ---------- */
   function importieren() {

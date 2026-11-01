@@ -2386,7 +2386,9 @@ Glasfaser? Wir ziehen durch.`;
       kunden = lade(KEY_KUNDEN, STD_KUNDEN); empfaengerListe = lade(KEY_EMPF, STD_EMPFAENGER);
       fuelleKunden(); fuelleEmpfaenger(); aktualisiere({ sofort: true });
     },
-    listenNeu: () => { ladeArchiv(); ladeStatistik(); ladeEntwuerfe(); nummernPflegen(); } };
+    listenNeu: () => { ladeArchiv(); ladeStatistik(); ladeEntwuerfe(); nummernPflegen(); },
+    // Aus der Übersicht: eine gespeicherte Rechnung zum Bearbeiten öffnen
+    rechnungOeffnen: (datei) => rechnungLaden({ name: datei }) };
 })();
 
 </script>
