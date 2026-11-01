@@ -565,7 +565,14 @@
         alle: true, nichtGesendet: !r.gesendet, gesendet: r.gesendet && !r.bezahlt, ueberfaellig: ueberfaellig(r), bezahlt: r.bezahlt,
       })[ueFilter]).filter((r) => !s || [r.nr, r.kunde, r.empfaenger, adresseVon(r)].join(' ').toLowerCase().includes(s));
       const box = d.querySelector('[data-liste]');
-      if (!liste.length) { box.innerHTML = `<p class="nr-ue-leer">${alle_.length ? 'Keine Rechnung passt zu dieser Auswahl.' : 'Noch keine Rechnungen gespeichert.'}</p>`; return; }
+      if (!liste.length && !alle_.length) {
+        box.innerHTML = `<div class="nr-ue-leer"><p>Hier sind noch keine Rechnungen.</p>
+          <p>${benutzer ? 'Ihre bisherigen Rechnungen vom Mac holen Sie mit diesem Knopf herein.' : 'Melden Sie sich zuerst an. Danach können Sie Ihre bisherigen Rechnungen vom Mac übernehmen.'}</p>
+          <div class="nr-ue-knoepfe" style="justify-content:center;margin-top:12px"><button class="gruen" data-leer>${benutzer ? 'Rechnungen vom Mac übernehmen' : 'Anmelden'}</button></div></div>`;
+        box.querySelector('[data-leer]').onclick = () => { d.close(); benutzer ? importieren() : anmeldenZeigen(); };
+        return;
+      }
+      if (!liste.length) { box.innerHTML = '<p class="nr-ue-leer">Keine Rechnung passt zu dieser Auswahl.</p>'; return; }
       box.innerHTML = liste.map((r) => {
         const an = adresseVon(r);
         const gesendetText = !r.gesendet ? 'Noch nicht gesendet'

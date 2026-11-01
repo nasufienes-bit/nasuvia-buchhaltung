@@ -573,6 +573,10 @@ body.nur-blatt .sheet { transform: none !important; }
   input, select, textarea { font-size: 16px !important; }
   .panel { padding: 14px 12px 40px; }
   .card { padding: 16px 14px; }
+  /* Safari gibt Datumsfeldern eine eigene Mindestbreite; so bleiben sie im Kästchen */
+  input[type="date"] { -webkit-appearance: none; appearance: none; display: block; box-sizing: border-box; width: 100%; max-width: 100%; min-height: 38px; text-align: left; }
+  input[type="date"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
+  .field-row > * { min-width: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
