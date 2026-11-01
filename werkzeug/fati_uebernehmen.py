@@ -70,6 +70,12 @@ if not F['mail'] and not F['web']:
 t = t.replace("'nasuvia.", "'fati.")
 assert not re.search(r'(?i)nasuvia\.ch|glasfaser|CHE-345|Tössfeld', t), 'Nasuvia-Angaben übrig'
 t = ers(t, '<script src="../lib/supabase.js"></script>\n', '')
+# Farben aus dem Fati-Logo statt Nasuvia-Blau
+FARBEN = [('#1C2A7B', '#0A4F4E'), ('#3B55E6', '#0E7C7B'), ('#0C1226', '#10242C'),
+          ('rgba(28, 42, 123', 'rgba(10, 79, 78'), ('rgba(59, 85, 230', 'rgba(14, 124, 123'),
+          ('rgba(28,42,123', 'rgba(10,79,78'), ('rgba(59,85,230', 'rgba(14,124,123')]
+for alt, neu in FARBEN:
+    t = t.replace(alt, neu).replace(alt.lower(), neu)
 (ZIEL / 'index.html').write_text(t)
 
 # ---------- Dienst (Abgleich, PDF, Übersicht) ----------
@@ -105,6 +111,8 @@ d = re.sub(r"      if \(!liste\.length && !alle_\.length\) \{.*?\n        return
 assert 'Rechnungen vom Mac übernehmen' not in d.split('function importieren')[0].split('uebersichtZeigen')[1]
 d = re.sub(r"    // Zurück zur Buchhaltung, gleich über dem Logo\n.*?kopf\.parentNode\.insertBefore\(z, kopf\);\n", '', d, flags=re.S)
 assert 'Zur Buchhaltung' not in d
+for alt, neu in FARBEN:
+    d = d.replace(alt, neu).replace(alt.lower(), neu)
 (ZIEL / 'dienst.js').write_text(d)
 
 (ZIEL / 'manifest.webmanifest').write_text(json.dumps({
