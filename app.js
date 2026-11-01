@@ -775,7 +775,8 @@
       const betrag = Number(r.betragRappen) || 0;
       if (!nr || !betrag) continue;
       const alt = vorhanden.get(nr);
-      if (alt && alt.geloescht) continue;
+      // Vom Nutzer hier gelöschte Buchungen bleiben weg; von der Rechnungs-App entfernte kommen beim Wiederherstellen zurück
+      if (alt && alt.geloescht && !alt.entferntDurchApp) continue;
       const mwst = Number(r.mwstRappen) || 0;
       const b = {
         ...(alt || {}),
@@ -789,9 +790,9 @@
         zahlung: alt ? alt.zahlung : 'Bank',
         bezahlt: alt && alt.bezahlt ? true : !!r.bezahlt,
         bezahltAm: alt && alt.bezahltAm ? alt.bezahltAm : (r.bezahlt ? (r.bezahltAm || (r.datum || '').slice(0, 10)) : ''),
-        geaendert: undefined,
+        geaendert: undefined, geloescht: false, entferntDurchApp: false,
       };
-      if (alt && ['datum', 'betragRappen', 'mwstRappen', 'partner', 'bezahlt', 'bezahltAm'].every((k) => alt[k] === b[k])) continue;
+      if (alt && ['datum', 'betragRappen', 'mwstRappen', 'partner', 'bezahlt', 'bezahltAm', 'geloescht'].every((k) => !!alt[k] === !!b[k] && (typeof b[k] === 'boolean' || alt[k] === b[k]))) continue;
       liste.push(b);
       if (alt) aktualisiert++; else neu++;
     }
@@ -814,7 +815,7 @@
       let entfernt = 0;
       for (const nr of weg) {
         const b = await Speicher.holen('buchungen', 'rechnung-' + nr);
-        if (b && !b.geloescht && b.quelle === 'rechnung') { await Speicher.loeschen('buchungen', b.id); entfernt++; }
+        if (b && !b.geloescht && b.quelle === 'rechnung') { await Speicher.mehrereSpeichern('buchungen', [{ ...b, geloescht: true, entferntDurchApp: true, geaendert: new Date().toISOString() }]); entfernt++; }
       }
       if (neu || aktualisiert || entfernt) await neuLaden(neu ? `${neu} neue ${neu === 1 ? 'Rechnung' : 'Rechnungen'} aus der Rechnungs-App` : entfernt ? `${entfernt} gelöschte Rechnung entfernt` : '');
     } catch { /* beim nächsten Abgleich wieder */ } finally { rechnungenLaeuft = false; }

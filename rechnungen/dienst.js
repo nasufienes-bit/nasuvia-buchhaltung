@@ -86,7 +86,7 @@
     const datei = dateiname(daten);
     const nr = String(daten.nr || '').trim();
     const liste = await gueltig('rechnung');
-    const ersetzt = liste.filter((r) => nr && String(r.nr) === nr && r.datei !== datei).map((r) => ({ ...r, geloescht: true }));
+    const ersetzt = liste.filter((r) => nr && String(r.nr) === nr && r.datei !== datei).map((r) => ({ ...r, geloescht: true, ersetzt: true }));
     const vorher = liste.find((r) => r.datei === datei);
     const eintrag = {
       id: 'rg-' + datei.replace(/\.pdf$/, ''), datei, nr,
@@ -355,8 +355,12 @@
       if (error) throw error;
       await roh('pdf', [{ ...p, hochgeladen: true }]);
     }
-    for (const r of (await alle('rechnung')).filter((x) => x.offen && x.geloescht && x.datei)) {
-      // Ersetzte Fassungen behalten ihr PDF nicht: gleicher Dateiname heisst gleiche Rechnung
+    // „Zuletzt gelöscht“ bleibt 30 Tage, danach endgültig weg
+    const frist = Date.now() - 30 * 864e5;
+    const abgelaufen = (await alle('rechnung')).filter((x) => x.geloescht && x.geloeschtAm && !x.endgueltig && Date.parse(x.geloeschtAm) < frist);
+    if (abgelaufen.length) await speichern('rechnung', abgelaufen.map((x) => ({ ...x, endgueltig: true })));
+    for (const r of (await alle('rechnung')).filter((x) => x.offen && x.geloescht && x.datei && (x.endgueltig || x.ersetzt))) {
+      // Gleicher Dateiname heisst gleiche Rechnung: ein aktives Gegenstück behält sein PDF
       const aktiv = (await gueltig('rechnung')).some((x) => x.datei === r.datei);
       if (!aktiv) await sb.storage.from('belege').remove([`${uid}/rechnungen/${r.datei}`]);
     }
@@ -524,6 +528,8 @@
     .nr-ue-knoepfe button{border:0;border-radius:9px;padding:8px 12px;font:600 .84rem inherit;font-family:inherit;cursor:pointer;background:#EEF1F8;color:#1C2A7B}
     .nr-ue-knoepfe button.gruen{background:rgba(14,159,110,.12);color:#0A7150}
     .nr-ue-knoepfe button.rot{background:none;color:#E5484D;margin-left:auto}
+    .nr-ue-karte.geloescht{background:#FAFBFE;border-style:dashed}
+    .nr-ue-hinweis{grid-column:1/-1;margin:0;font-size:.88rem;color:#47506B;background:#F6F8FC;border-radius:10px;padding:10px 12px}
     .nr-ue-leer{text-align:center;color:#47506B;padding:30px 10px}
     @media (max-width:640px){
       .nr-ue{width:100%;max-width:100%;height:100%;max-height:100%;margin:0;border-radius:0}
@@ -562,7 +568,7 @@
         <div class="zeile1"><h3>Alle Rechnungen</h3><button class="nr-ue-zu" data-zu aria-label="Schliessen">×</button></div>
         <div class="nr-ue-summen" data-summen></div>
         <div class="nr-ue-filter" data-filter>
-          <button data-f="alle">Alle</button><button data-f="nichtGesendet">Nicht gesendet</button><button data-f="gesendet">Gesendet, offen</button><button data-f="ueberfaellig">Überfällig</button><button data-f="bezahlt">Bezahlt</button>
+          <button data-f="alle">Alle</button><button data-f="nichtGesendet">Nicht gesendet</button><button data-f="gesendet">Gesendet, offen</button><button data-f="ueberfaellig">Überfällig</button><button data-f="bezahlt">Bezahlt</button><button data-f="papierkorb" data-papierkorb>Zuletzt gelöscht</button>
         </div>
         <input class="nr-ue-suche" type="search" placeholder="Suchen: Nummer, Kunde oder E-Mail" data-suche value="${esc(ueSuche)}">
       </div>
@@ -580,10 +586,33 @@
         `<div class="${ueber.length ? 'rot' : 'blau'}"><b>${chfText(summe(offen))}</b><span>Offen${ueber.length ? `, davon ${ueber.length} überfällig` : ''}</span></div>` +
         `<div class="gruen"><b>${chfText(summe(alle_.filter((r) => r.bezahlt)))}</b><span>Bezahlt</span></div>`;
       d.querySelectorAll('[data-f]').forEach((b) => b.classList.toggle('an', b.getAttribute('data-f') === ueFilter));
+      const korb = (await alle('rechnung')).filter((r) => r.geloescht && r.geloeschtAm && !r.endgueltig)
+        .sort((a, b) => (b.geloeschtAm || '').localeCompare(a.geloeschtAm || ''));
+      d.querySelector('[data-papierkorb]').textContent = 'Zuletzt gelöscht' + (korb.length ? ` (${korb.length})` : '');
       const s = ueSuche.trim().toLowerCase();
+      const passt = (r) => !s || [r.nr, r.kunde, r.empfaenger, adresseVon(r)].join(' ').toLowerCase().includes(s);
+      if (ueFilter === 'papierkorb') {
+        const box = d.querySelector('[data-liste]');
+        const k = korb.filter(passt);
+        if (!k.length) { box.innerHTML = '<p class="nr-ue-leer">Hier ist nichts. Gelöschte Rechnungen bleiben 30 Tage hier, bevor sie endgültig verschwinden.</p>'; return; }
+        box.innerHTML = '<p class="nr-ue-hinweis">Gelöschte Rechnungen bleiben 30 Tage hier. Danach werden sie automatisch endgültig entfernt.</p>' + k.map((r) => {
+          const bis = new Date(Date.parse(r.geloeschtAm) + 30 * 864e5).toISOString();
+          return `<div class="nr-ue-karte geloescht" data-id="${esc(r.id)}">
+            <div class="oben"><b>Nr. ${esc(r.nr || '?')} · ${esc(r.kunde || 'Ohne Kunde')}</b><span class="betrag">${chfText(r.betragRappen)}</span></div>
+            <div class="klein">Rechnung vom ${datumText(r.datum)} · gelöscht am ${zeitText(r.geloeschtAm)}</div>
+            <div class="klein">Wird am ${datumText(bis)} endgültig entfernt</div>
+            <div class="nr-ue-knoepfe" style="margin-top:12px">
+              <button data-a="pdf">PDF ansehen</button>
+              <button data-a="zurueck" class="gruen">Wiederherstellen</button>
+              <button data-a="endgueltig" class="rot">Endgültig löschen</button>
+            </div>
+          </div>`;
+        }).join('');
+        return;
+      }
       const liste = alle_.filter((r) => ({
         alle: true, nichtGesendet: !r.gesendet, gesendet: r.gesendet && !r.bezahlt, ueberfaellig: ueberfaellig(r), bezahlt: r.bezahlt,
-      })[ueFilter]).filter((r) => !s || [r.nr, r.kunde, r.empfaenger, adresseVon(r)].join(' ').toLowerCase().includes(s));
+      })[ueFilter]).filter(passt);
       const box = d.querySelector('[data-liste]');
       if (!liste.length && !alle_.length) {
         box.innerHTML = `<div class="nr-ue-leer"><p>Hier sind noch keine Rechnungen.</p>
@@ -599,7 +628,7 @@
           : (r.gesendetAm ? zeitText(r.gesendetAm) : 'Ja') + (an ? `<span>an ${esc(an)}</span>` : '');
         const bezahltText = r.bezahlt ? (r.bezahltAm ? datumText(r.bezahltAm) : 'Ja')
           : ueberfaellig(r) ? `Überfällig seit ${datumText(r.faellig)}` : (r.faellig ? `Fällig am ${datumText(r.faellig)}` : 'Offen');
-        return `<div class="nr-ue-karte" data-datei="${esc(r.datei)}">
+        return `<div class="nr-ue-karte" data-id="${esc(r.id)}">
           <div class="oben"><b>Nr. ${esc(r.nr || '?')} · ${esc(r.kunde || 'Ohne Kunde')}</b><span class="betrag">${chfText(r.betragRappen)}</span></div>
           <div class="klein">Rechnung vom ${datumText(r.datum)}${r.empfaenger ? ' · Zahlung an ' + esc(r.empfaenger) : ''}</div>
           <div class="nr-ue-weg">
@@ -621,7 +650,7 @@
     d.querySelector('[data-suche]').oninput = (e) => { ueSuche = e.target.value; zeichnen(); };
     d.querySelector('[data-liste]').onclick = async (e) => {
       const b = e.target.closest('[data-a]'); if (!b) return;
-      const r = await nachDatei(b.closest('[data-datei]').getAttribute('data-datei'));
+      const r = await eins('rechnung', b.closest('[data-id]').getAttribute('data-id'));
       if (!r) return;
       const a = b.getAttribute('data-a');
       if (a === 'pdf') {
@@ -632,10 +661,20 @@
         d.close();
         if (window.__nasuvia && window.__nasuvia.rechnungOeffnen) window.__nasuvia.rechnungOeffnen(r.datei);
       } else if (a === 'loeschen') {
-        if (!confirm(`Rechnung Nr. ${r.nr} an ${r.kunde || 'Kunde'} über ${chfText(r.betragRappen)} wirklich löschen?\n\nSie verschwindet auf allen Geräten und aus der Buchhaltung. Das lässt sich nicht rückgängig machen.`)) return;
-        await speichern('rechnung', [{ ...r, geloescht: true }]);
-        const t = (await db()).transaction('pdf', 'readwrite'); t.objectStore('pdf').delete(r.id);
+        if (!confirm(`Rechnung Nr. ${r.nr} an ${r.kunde || 'Kunde'} über ${chfText(r.betragRappen)} löschen?\n\nSie kommt 30 Tage lang in „Zuletzt gelöscht“ und lässt sich dort wiederherstellen.`)) return;
+        await speichern('rechnung', [{ ...r, geloescht: true, geloeschtAm: jetzt() }]);
         if (window.__nasuvia && window.__nasuvia.listenNeu) window.__nasuvia.listenNeu();
+        zeichnen();
+      } else if (a === 'zurueck') {
+        const gleich = (await gueltig('rechnung')).find((x) => String(x.nr) === String(r.nr));
+        if (gleich && !confirm(`Es gibt schon eine Rechnung mit der Nummer ${r.nr} (${gleich.kunde}). Trotzdem wiederherstellen?`)) return;
+        await speichern('rechnung', [{ ...r, geloescht: false, geloeschtAm: '' }]);
+        if (window.__nasuvia && window.__nasuvia.listenNeu) window.__nasuvia.listenNeu();
+        zeichnen();
+      } else if (a === 'endgueltig') {
+        if (!confirm(`Rechnung Nr. ${r.nr} endgültig löschen?\n\nDas lässt sich nicht rückgängig machen.`)) return;
+        await speichern('rechnung', [{ ...r, endgueltig: true }]);
+        const tr = (await db()).transaction('pdf', 'readwrite'); tr.objectStore('pdf').delete(r.id);
         zeichnen();
       } else if (a === 'bezahlt') {
         await speichern('rechnung', [{ ...r, bezahlt: !r.bezahlt, bezahltAm: r.bezahlt ? '' : heute() }]);
