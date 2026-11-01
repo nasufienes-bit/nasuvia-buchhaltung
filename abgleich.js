@@ -161,7 +161,8 @@
       return !data.session; // true: E-Mail muss noch bestätigt werden
     },
     async abmelden() {
-      await sb.auth.signOut();
+      // Nur auf diesem Gerät abmelden: klappt sofort, auch ohne Netz
+      await sb.auth.signOut({ scope: 'local' });
       setz(K_SEIT, null);
       setz(K_ZULETZT, null);
     },

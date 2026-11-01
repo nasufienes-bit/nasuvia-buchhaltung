@@ -1,5 +1,5 @@
 // Hält die App offline verfügbar. Bei jeder neuen Fassung VERSION erhöhen.
-const VERSION = 'nb-8';
+const VERSION = 'nb-9';
 const DATEIEN = ['./', 'index.html', 'app.js', 'speicher.js', 'abgleich.js', 'lib/supabase.js', 'schrift.css', 'logo.png', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'manifest.webmanifest',
   'lib/html2canvas.min.js', 'lib/jspdf.umd.min.js', 'rechnungen/', 'rechnungen/index.html', 'rechnungen/dienst.js', 'rechnungen/manifest.webmanifest'];
 

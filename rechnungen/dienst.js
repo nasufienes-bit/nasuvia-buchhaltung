@@ -461,12 +461,13 @@
       <div class="reihe">
         <button class="haupt" data-jetzt>Jetzt abgleichen</button>
         <button class="zweit" data-import>Rechnungen vom Mac übernehmen</button>
-        <button class="leise" data-ab>Abmelden</button>
+        <button class="leise" data-ab style="color:#E5484D">Abmelden</button>
         <button class="leise" data-zu>Schliessen</button>
       </div>`);
     d.querySelector('[data-zu]').onclick = () => d.close();
     d.querySelector('[data-jetzt]').onclick = () => { d.close(); abgleichen(); };
-    d.querySelector('[data-ab]').onclick = async () => { await sb.auth.signOut(); setz(K_SEIT, null); setz(K_ZULETZT, null); d.close(); };
+    // Abmelden nur auf diesem Gerät: klappt sofort, auch ohne Netz
+    d.querySelector('[data-ab]').onclick = async () => { await sb.auth.signOut({ scope: 'local' }); setz(K_SEIT, null); setz(K_ZULETZT, null); benutzer = null; melden(); d.close(); };
     d.querySelector('[data-import]').onclick = () => { d.close(); importieren(); };
   }
 
