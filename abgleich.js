@@ -144,6 +144,13 @@
     get zuletzt() { return lies(K_ZULETZT); },
     beiAenderung(f) { zuhoerer.add(f); },
     jetzt: abgleichen,
+    // Rechnungen aus der Rechnungs-App (gleiche Tabelle, Art „rechnung“)
+    async rechnungenHolen() {
+      if (!benutzer) return [];
+      const { data, error } = await sb.from('datensaetze').select('daten,geloescht').eq('art', 'rechnung');
+      if (error) throw error;
+      return data.filter((z) => !z.geloescht).map((z) => z.daten);
+    },
     async anmelden(email, passwort) {
       const { error } = await sb.auth.signInWithPassword({ email, password: passwort });
       if (error) throw new Error(deutsch(error));

@@ -1,6 +1,7 @@
 // Hält die App offline verfügbar. Bei jeder neuen Fassung VERSION erhöhen.
-const VERSION = 'nb-2';
-const DATEIEN = ['./', 'index.html', 'app.js', 'speicher.js', 'abgleich.js', 'lib/supabase.js', 'schrift.css', 'logo.png', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'manifest.webmanifest'];
+const VERSION = 'nb-3';
+const DATEIEN = ['./', 'index.html', 'app.js', 'speicher.js', 'abgleich.js', 'lib/supabase.js', 'schrift.css', 'logo.png', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'manifest.webmanifest',
+  'lib/html2canvas.min.js', 'lib/jspdf.umd.min.js', 'rechnungen/', 'rechnungen/index.html', 'rechnungen/dienst.js', 'rechnungen/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(DATEIEN)).then(() => self.skipWaiting()));

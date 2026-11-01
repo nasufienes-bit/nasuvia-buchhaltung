@@ -209,7 +209,7 @@
     return `
     <div class="kopf">
       <div><h1>Übersicht</h1><p class="unter">Alle Beträge ohne MWST</p></div>
-      <div class="kopf-aktionen">${jahrWahl()}<button class="btn btn-haupt nur-pc" onclick="NB.neu()">+ Neue Buchung</button></div>
+      <div class="kopf-aktionen">${jahrWahl()}<a class="btn" href="rechnungen/" style="text-decoration:none">Rechnung schreiben</a><button class="btn btn-haupt nur-pc" onclick="NB.neu()">+ Neue Buchung</button></div>
     </div>
     <div class="raster raster-4">
       <div class="card kennzahl"><div class="label">Einnahmen</div><div class="wert">${chf(s.ein)}</div><div class="klein">CHF im Jahr ${Z.jahr}</div></div>
@@ -761,6 +761,12 @@
     try { daten = JSON.parse(await datei.text()); } catch { toast('Diese Datei kann ich nicht lesen'); return; }
     const register = Array.isArray(daten) ? daten : (daten && Array.isArray(daten.register) ? daten.register : null);
     if (!register) { toast('In dieser Datei sind keine Rechnungen'); return; }
+    const { neu, aktualisiert } = await rechnungenEinbuchen(register);
+    await neuLaden(`${neu} Rechnungen übernommen${aktualisiert ? `, ${aktualisiert} aktualisiert` : ''}`);
+  }
+
+  // Bucht Rechnungen als Einnahmen ein. Schreibt nur, was neu ist oder sich geändert hat.
+  async function rechnungenEinbuchen(register) {
     const vorhanden = new Map((await Speicher.alleMitGeloeschten('buchungen')).filter((b) => b.quelle === 'rechnung').map((b) => [b.rechnungNr, b]));
     let neu = 0, aktualisiert = 0;
     const liste = [];
@@ -785,11 +791,23 @@
         bezahltAm: alt && alt.bezahltAm ? alt.bezahltAm : (r.bezahlt ? (r.bezahltAm || (r.datum || '').slice(0, 10)) : ''),
         geaendert: undefined,
       };
+      if (alt && ['datum', 'betragRappen', 'mwstRappen', 'partner', 'bezahlt', 'bezahltAm'].every((k) => alt[k] === b[k])) continue;
       liste.push(b);
       if (alt) aktualisiert++; else neu++;
     }
-    await Speicher.mehrereSpeichern('buchungen', liste.map((b) => ({ ...b, geaendert: new Date().toISOString() })));
-    await neuLaden(`${neu} Rechnungen übernommen${aktualisiert ? `, ${aktualisiert} aktualisiert` : ''}`);
+    if (liste.length) await Speicher.mehrereSpeichern('buchungen', liste.map((b) => ({ ...b, geaendert: new Date().toISOString() })));
+    return { neu, aktualisiert };
+  }
+
+  // Holt die Rechnungen aus der Rechnungs-App nach jedem Abgleich automatisch herein
+  let rechnungenLaeuft = false;
+  async function rechnungenAusApp() {
+    if (rechnungenLaeuft || !window.Abgleich || !Abgleich.benutzer || !Abgleich.rechnungenHolen) return;
+    rechnungenLaeuft = true;
+    try {
+      const { neu, aktualisiert } = await rechnungenEinbuchen(await Abgleich.rechnungenHolen());
+      if (neu || aktualisiert) await neuLaden(neu ? `${neu} neue ${neu === 1 ? 'Rechnung' : 'Rechnungen'} aus der Rechnungs-App` : '');
+    } catch { /* beim nächsten Abgleich wieder */ } finally { rechnungenLaeuft = false; }
   }
 
   const blobZuText = (blob) => new Promise((ok) => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(blob); });
@@ -851,6 +869,7 @@
           if (!suche && !$('dlg').open) { zeichnen(); return; }
         }
         if (Z.ansicht === 'mehr' && !document.querySelector('[data-login]')) zeichnen(); else statusZeigen();
+        if (!Abgleich.laeuft) rechnungenAusApp();
       });
     }
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
