@@ -562,9 +562,17 @@ body.nur-blatt .sheet { transform: none !important; }
 
 /* ============ RESPONSIVE ============ */
 @media (max-width: 1200px) {
-  .app { grid-template-columns: 1fr; }
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .preview { min-width: 0; overflow: hidden; }
   .panel { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--hairline); }
   .preview { padding: 16px 10px; }
+}
+
+/* iPhone zoomt bei Feldern unter 16px beim Antippen hinein */
+@media (max-width: 700px) {
+  input, select, textarea { font-size: 16px !important; }
+  .panel { padding: 14px 12px 40px; }
+  .card { padding: 16px 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
