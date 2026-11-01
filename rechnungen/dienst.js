@@ -355,6 +355,11 @@
       if (error) throw error;
       await roh('pdf', [{ ...p, hochgeladen: true }]);
     }
+    for (const r of (await alle('rechnung')).filter((x) => x.offen && x.geloescht && x.datei)) {
+      // Ersetzte Fassungen behalten ihr PDF nicht: gleicher Dateiname heisst gleiche Rechnung
+      const aktiv = (await gueltig('rechnung')).some((x) => x.datei === r.datei);
+      if (!aktiv) await sb.storage.from('belege').remove([`${uid}/rechnungen/${r.datei}`]);
+    }
     for (const [speicher, art] of Object.entries(ARTEN)) {
       const offen = (await alle(speicher)).filter((e) => e.offen);
       for (let i = 0; i < offen.length; i += 200) {
@@ -518,6 +523,7 @@
     .nr-ue-knoepfe{display:flex;gap:6px;flex-wrap:wrap}
     .nr-ue-knoepfe button{border:0;border-radius:9px;padding:8px 12px;font:600 .84rem inherit;font-family:inherit;cursor:pointer;background:#EEF1F8;color:#1C2A7B}
     .nr-ue-knoepfe button.gruen{background:rgba(14,159,110,.12);color:#0A7150}
+    .nr-ue-knoepfe button.rot{background:none;color:#E5484D;margin-left:auto}
     .nr-ue-leer{text-align:center;color:#47506B;padding:30px 10px}
     @media (max-width:640px){
       .nr-ue{width:100%;max-width:100%;height:100%;max-height:100%;margin:0;border-radius:0}
@@ -605,6 +611,7 @@
             <button data-a="pdf">PDF ansehen</button>
             <button data-a="bearbeiten">Bearbeiten</button>
             <button data-a="bezahlt" class="${r.bezahlt ? '' : 'gruen'}">${r.bezahlt ? 'Wieder offen' : 'Als bezahlt markieren'}</button>
+            <button data-a="loeschen" class="rot">Löschen</button>
           </div>
         </div>`;
       }).join('');
@@ -624,6 +631,12 @@
       } else if (a === 'bearbeiten') {
         d.close();
         if (window.__nasuvia && window.__nasuvia.rechnungOeffnen) window.__nasuvia.rechnungOeffnen(r.datei);
+      } else if (a === 'loeschen') {
+        if (!confirm(`Rechnung Nr. ${r.nr} an ${r.kunde || 'Kunde'} über ${chfText(r.betragRappen)} wirklich löschen?\n\nSie verschwindet auf allen Geräten und aus der Buchhaltung. Das lässt sich nicht rückgängig machen.`)) return;
+        await speichern('rechnung', [{ ...r, geloescht: true }]);
+        const t = (await db()).transaction('pdf', 'readwrite'); t.objectStore('pdf').delete(r.id);
+        if (window.__nasuvia && window.__nasuvia.listenNeu) window.__nasuvia.listenNeu();
+        zeichnen();
       } else if (a === 'bezahlt') {
         await speichern('rechnung', [{ ...r, bezahlt: !r.bezahlt, bezahltAm: r.bezahlt ? '' : heute() }]);
         if (window.__nasuvia && window.__nasuvia.listenNeu) window.__nasuvia.listenNeu();

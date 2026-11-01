@@ -149,7 +149,7 @@
       if (!benutzer) return [];
       const { data, error } = await sb.from('datensaetze').select('daten,geloescht').eq('art', 'rechnung');
       if (error) throw error;
-      return data.filter((z) => !z.geloescht).map((z) => z.daten);
+      return data.map((z) => ({ ...z.daten, geloescht: z.geloescht }));
     },
     async anmelden(email, passwort) {
       const { error } = await sb.auth.signInWithPassword({ email, password: passwort });

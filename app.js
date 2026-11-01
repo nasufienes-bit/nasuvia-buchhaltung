@@ -805,8 +805,18 @@
     if (rechnungenLaeuft || !window.Abgleich || !Abgleich.benutzer || !Abgleich.rechnungenHolen) return;
     rechnungenLaeuft = true;
     try {
-      const { neu, aktualisiert } = await rechnungenEinbuchen(await Abgleich.rechnungenHolen());
-      if (neu || aktualisiert) await neuLaden(neu ? `${neu} neue ${neu === 1 ? 'Rechnung' : 'Rechnungen'} aus der Rechnungs-App` : '');
+      const alle = await Abgleich.rechnungenHolen();
+      const aktiv = alle.filter((r) => !r.geloescht);
+      const { neu, aktualisiert } = await rechnungenEinbuchen(aktiv);
+      // In der Rechnungs-App gelöscht und keine andere Rechnung mit dieser Nummer: auch hier entfernen
+      const aktiveNr = new Set(aktiv.map((r) => String(r.nr || '').trim()));
+      const weg = [...new Set(alle.filter((r) => r.geloescht).map((r) => String(r.nr || '').trim()))].filter((nr) => nr && !aktiveNr.has(nr));
+      let entfernt = 0;
+      for (const nr of weg) {
+        const b = await Speicher.holen('buchungen', 'rechnung-' + nr);
+        if (b && !b.geloescht && b.quelle === 'rechnung') { await Speicher.loeschen('buchungen', b.id); entfernt++; }
+      }
+      if (neu || aktualisiert || entfernt) await neuLaden(neu ? `${neu} neue ${neu === 1 ? 'Rechnung' : 'Rechnungen'} aus der Rechnungs-App` : entfernt ? `${entfernt} gelöschte Rechnung entfernt` : '');
     } catch { /* beim nächsten Abgleich wieder */ } finally { rechnungenLaeuft = false; }
   }
 
