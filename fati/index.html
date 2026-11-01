@@ -804,7 +804,7 @@ Herzlichen Dank für das entgegengebrachte Vertrauen. Wir stellen Ihnen folgende
           </header>
 
           <div class="addr-zone">
-            <p class="mono sender">FATI SANITÄR UND HAUSWARTUNGEN GMBH — PLATZHALTER-STRASSE 1 — 0000 PLATZHALTER-ORT</p>
+            <p class="mono sender">FATI SANITÄR UND HAUSWARTUNGEN GMBH — SCHLOSSMÜHLESTRASSE 231 — 8408 WINTERTHUR</p>
             <p class="empfaenger" id="vEmpfaenger"></p>
           </div>
 
@@ -839,9 +839,9 @@ Herzlichen Dank für das entgegengebrachte Vertrauen. Wir stellen Ihnen folgende
         </div>
 
         <div class="foot">
-          <span><span class="b mono">FATI SANITÄR UND HAUSWARTUNGEN GMBH</span> · PLATZHALTER-Strasse 1 · 0000 PLATZHALTER-Ort</span>
-          <span>+41 00 000 00 00 · platzhalter@beispiel.ch</span>
-          <span>CHE-000.000.000 MWST</span>
+          <span><span class="b mono">FATI SANITÄR UND HAUSWARTUNGEN GMBH</span> · Schlossmühlestrasse 231 · 8408 Winterthur</span>
+          <span>+41 76 463 24 70</span>
+          <span>CHE-115.999.839 MWST</span>
         </div>
 
         <div class="qrbill">
@@ -1026,16 +1026,16 @@ const MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
   const QR = window.__QRCode;
   let serverDa = false;
 
-  const ABSENDER = 'platzhalter@beispiel.ch';
+  const ABSENDER = '';
   const FIRMA = {
     name: 'Fati Sanitär und Hauswartungen GmbH',
     zusatz: 'Sanitär und Hauswartungen',
-    strasse: 'PLATZHALTER-Strasse 1',
-    ort: '0000 PLATZHALTER-Ort',
-    tel: '+41 00 000 00 00',
-    mail: 'platzhalter@beispiel.ch',
+    strasse: 'Schlossmühlestrasse 231',
+    ort: '8408 Winterthur',
+    tel: '+41 76 463 24 70',
+    mail: '',
     web: '',
-    uid: 'CHE-000.000.000 MWST',
+    uid: 'CHE-115.999.839 MWST',
   };
 
   /* ---------- Speicher ---------- */
@@ -1060,7 +1060,7 @@ const MONO = "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace";
   // Zahlungsempfänger: die eigenen Angaben kommen nach der Anmeldung aus dem Abgleich
   const STD_EMPFAENGER = [
     { id: 'firma', bez: 'Fati (direkt an uns)', name: 'Fati Sanitär und Hauswartungen GmbH',
-      iban: '', strasse: 'PLATZHALTER-Strasse', nr: '1', plz: '0000', ort: 'PLATZHALTER-Ort', land: 'CH',
+      iban: '', strasse: 'Schlossmühlestrasse', nr: '231', plz: '8408', ort: 'Winterthur', land: 'CH',
       factoring: false },
   ];
 
@@ -1624,7 +1624,7 @@ u + #body a, #MessageViewBody a { color:inherit; text-decoration:none; font-size
 <td align="left" valign="middle" style="padding:0;">
 <img src="${LOGO_CID}" width="132" alt="${esc(FIRMA.name)}" class="logo" style="display:block; width:100%; max-width:132px; height:auto; border:0; outline:none; text-decoration:none; font-size:17px; line-height:24px; font-weight:700; color:#0C1226; font-family:Arial, Helvetica, sans-serif;">
 </td>
-<td align="right" valign="middle" class="mono mono-s t-mute" style="padding:0 0 0 12px; font-size:11px; line-height:16px; mso-line-height-rule:exactly; letter-spacing:1.2px; color:#47506B; font-family:${MONO};">PLATZHALTER-ORT</td>
+<td align="right" valign="middle" class="mono mono-s t-mute" style="padding:0 0 0 12px; font-size:11px; line-height:16px; mso-line-height-rule:exactly; letter-spacing:1.2px; color:#47506B; font-family:${MONO};">WINTERTHUR</td>
 </tr>
 </table>
 </td>
@@ -1723,7 +1723,7 @@ ${r.refTyp === 'QRR' ? '<tr><td colspan="2" height="1" bgcolor="#DFE1EC" class="
 
 <!-- Kontakt -->
 <tr>
-<td class="px sans body-txt t-mute" style="padding:20px 32px 0 32px; font-size:16px; line-height:26px; mso-line-height-rule:exactly; color:#47506B; font-family:${SANS};">F&uuml;r Fragen zur Rechnung oder zu einzelnen Positionen erreichen Sie uns unter <a href="tel:${esc(FIRMA.tel.replace(/[^+0-9]/g, ''))}" class="t-blue" style="color:#1C2A7B; font-weight:600; text-decoration:none;">${esc(FIRMA.tel)}</a> oder <a href="mailto:${esc(FIRMA.mail)}" class="t-blue" style="color:#1C2A7B; font-weight:600; text-decoration:underline;">${esc(FIRMA.mail)}</a>.</td>
+<td class="px sans body-txt t-mute" style="padding:20px 32px 0 32px; font-size:16px; line-height:26px; mso-line-height-rule:exactly; color:#47506B; font-family:${SANS};">F&uuml;r Fragen zur Rechnung oder zu einzelnen Positionen erreichen Sie uns unter <a href="tel:${esc(FIRMA.tel.replace(/[^+0-9]/g, ''))}" class="t-blue" style="color:#1C2A7B; font-weight:600; text-decoration:none;">${esc(FIRMA.tel)}</a>.</td>
 </tr>
 
 <!-- Gruss -->
@@ -1757,7 +1757,7 @@ ${r.refTyp === 'QRR' ? '<tr><td colspan="2" height="1" bgcolor="#DFE1EC" class="
 <td align="center" class="sans t-mute al-mute" style="padding:12px 12px 0 12px; font-size:14px; line-height:22px; mso-line-height-rule:exactly; color:#47506B; font-family:${SANS};">
 <span class="t-ink" style="color:#0C1226; font-weight:600;">${esc(FIRMA.name)}</span> &middot; ${esc(FIRMA.zusatz)}<br>
 ${esc(FIRMA.strasse)} &middot; ${esc(FIRMA.ort)}<br>
-<a href="tel:${esc(FIRMA.tel.replace(/[^+0-9]/g, ''))}" style="color:#47506B; text-decoration:none;">${esc(FIRMA.tel)}</a> &middot; <a href="mailto:${esc(FIRMA.mail)}" style="color:#47506B; text-decoration:underline;">${esc(FIRMA.mail)}</a> &middot; <a href="https://${esc(FIRMA.web)}" style="color:#47506B; text-decoration:underline;">${esc(FIRMA.web)}</a>
+<a href="tel:${esc(FIRMA.tel.replace(/[^+0-9]/g, ''))}" style="color:#47506B; text-decoration:none;">${esc(FIRMA.tel)}</a>
 </td>
 </tr>
 <tr>
@@ -1787,7 +1787,7 @@ ${zahlungsHinweis}
 
 Am Fuss der Rechnung finden Sie den QR-Zahlteil: In der Banking-App scannen, und Konto, Betrag sowie Referenz sind ohne manuelle Erfassung übernommen.${r.refTyp === 'QRR' ? ' Bitte führen Sie die Referenz bei einer manuellen Zahlung unverändert mit, damit wir den Eingang eindeutig zuordnen können.' : ''}
 
-Für Fragen zur Rechnung oder zu einzelnen Positionen erreichen Sie uns unter ${FIRMA.tel} oder ${FIRMA.mail}.
+Für Fragen zur Rechnung oder zu einzelnen Positionen erreichen Sie uns unter ${FIRMA.tel}.
 
 Freundliche Grüsse
 ${FIRMA.name} · ${FIRMA.zusatz}
@@ -1797,8 +1797,8 @@ Beilage: Rechnung Nr. ${r.nr} als PDF
 --
 ${FIRMA.name} — ${FIRMA.zusatz}
 ${FIRMA.strasse} · ${FIRMA.ort}
-${FIRMA.tel} · ${FIRMA.mail}
-${FIRMA.web} · ${FIRMA.uid}
+${FIRMA.tel}
+${FIRMA.uid}
 Sanitär und Hauswartungen.`;
 
 
@@ -2216,8 +2216,8 @@ Sanitär und Hauswartungen.`;
       }
       $('mailDlg').close();
       if (erg.weg !== 'teilen') toast(erg.weg === 'konto'
-        ? 'Mail geöffnet — Absender platzhalter@beispiel.ch, Rechnung ist angehängt'
-        : 'Mail geöffnet — Rechnung ist angehängt. Bitte oben das Konto platzhalter@beispiel.ch wählen.', 6000);
+        ? 'Mail geöffnet — Absender , Rechnung ist angehängt'
+        : 'Mail geöffnet — Rechnung ist angehängt. Bitte oben das Konto  wählen.', 6000);
     } catch (e) {
       toast('Fehler: ' + e.message, 5000);
     } finally {

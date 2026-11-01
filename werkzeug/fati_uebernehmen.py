@@ -59,6 +59,13 @@ for alt, neu in [
     ('.sheet .logo { height: 9mm;', '.sheet .logo { height: 11mm;'),
 ]:
     t = ers(t, alt, neu)
+# Ohne E-Mail und ohne Website: diese Angaben in Rechnungs-Mail und Fusszeile weglassen
+if not F['mail']:
+    t = ers(t, ' oder <a href="mailto:${esc(FIRMA.mail)}" class="t-blue" style="color:#1C2A7B; font-weight:600; text-decoration:underline;">${esc(FIRMA.mail)}</a>.', '.')
+    t = ers(t, ' oder ${FIRMA.mail}.', '.')
+if not F['mail'] and not F['web']:
+    t = ers(t, ' &middot; <a href="mailto:${esc(FIRMA.mail)}" style="color:#47506B; text-decoration:underline;">${esc(FIRMA.mail)}</a> &middot; <a href="https://${esc(FIRMA.web)}" style="color:#47506B; text-decoration:underline;">${esc(FIRMA.web)}</a>', '')
+    t = ers(t, '${FIRMA.tel} · ${FIRMA.mail}\n${FIRMA.web} · ${FIRMA.uid}', '${FIRMA.tel}\n${FIRMA.uid}')
 # Eigene Namen für alles, was auf dem Gerät gespeichert wird
 t = t.replace("'nasuvia.", "'fati.")
 assert not re.search(r'(?i)nasuvia\.ch|glasfaser|CHE-345|Tössfeld', t), 'Nasuvia-Angaben übrig'
