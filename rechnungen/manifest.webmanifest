@@ -2,7 +2,7 @@
   "name": "Nasuvia Rechnungen",
   "short_name": "Rechnungen",
   "start_url": "./",
-  "scope": "./",
+  "scope": "../",
   "display": "standalone",
   "background_color": "#F7F9FD",
   "theme_color": "#F7F9FD",

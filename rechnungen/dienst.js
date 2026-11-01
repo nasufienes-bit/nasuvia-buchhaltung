@@ -472,6 +472,9 @@
   const stilUebersicht = document.createElement('style');
   stilUebersicht.textContent = `
     .nr-ue-knopf{display:inline-flex;align-items:center;gap:7px;margin-left:auto;border:0;cursor:pointer;font:600 .9rem inherit;font-family:inherit;color:#fff;background:linear-gradient(135deg,#3B55E6,#1C2A7B);border-radius:100px;padding:9px 15px;box-shadow:0 6px 16px -8px rgba(28,42,123,.7)}
+    .nr-zurueck{display:inline-flex;align-self:flex-start;align-items:center;gap:4px;margin:0 0 10px 2px;font:600 .9rem inherit;font-family:inherit;color:#3B55E6;text-decoration:none;padding:6px 12px 6px 6px;border-radius:100px;background:rgba(59,85,230,.08)}
+    .nr-zurueck:hover{background:rgba(59,85,230,.14)}
+    .nr-zurueck svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
     .nr-ue-knopf svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
     .nr-ue{border:0;padding:0;width:min(920px,calc(100% - 24px));max-height:calc(100vh - 32px);border-radius:20px;box-shadow:0 40px 100px -30px rgba(12,18,38,.5);color:#0C1226;font-family:inherit}
     .nr-ue::backdrop{background:rgba(12,18,38,.35)}
@@ -628,6 +631,12 @@
     b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Übersicht';
     b.onclick = uebersichtZeigen;
     kopf.appendChild(b);
+    // Zurück zur Buchhaltung, gleich über dem Logo
+    const z = document.createElement('a');
+    z.href = '../';
+    z.className = 'nr-zurueck';
+    z.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Zur Buchhaltung';
+    kopf.parentNode.insertBefore(z, kopf);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', uebersichtKnopf); else uebersichtKnopf();
 
