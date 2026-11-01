@@ -119,8 +119,10 @@
   /* ---------- Fenster zum Teilen, Öffnen und Herunterladen ---------- */
   const stil = document.createElement('style');
   stil.textContent = `
-    .nr-dlg{border:0;border-radius:18px;padding:24px;max-width:420px;width:calc(100% - 32px);box-shadow:0 30px 80px -20px rgba(12,18,38,.45);font-family:inherit;color:#0C1226}
-    .nr-dlg::backdrop{background:rgba(12,18,38,.35)}
+    .nr-dlg{margin:auto;border:0;border-radius:18px;padding:24px;max-width:420px;width:calc(100% - 32px);box-shadow:0 30px 80px -20px rgba(12,18,38,.45);font-family:inherit;color:#0C1226}
+    .nr-dlg::backdrop{background:rgba(12,18,38,.38);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+    .nr-dlg[open],.nr-ue[open]{animation:nrEin .34s cubic-bezier(.2,.9,.3,1)}
+    @keyframes nrEin{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
     .nr-dlg h3{margin:0 0 6px;font-size:1.25rem}
     .nr-dlg p{margin:0 0 16px;color:#47506B;line-height:1.5}
     .nr-dlg .reihe{display:flex;flex-direction:column;gap:10px}
@@ -476,10 +478,10 @@
     .nr-zurueck:hover{background:rgba(59,85,230,.14)}
     .nr-zurueck svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
     .nr-ue-knopf svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-    .nr-ue{border:0;padding:0;width:min(920px,calc(100% - 24px));max-height:calc(100vh - 32px);border-radius:20px;box-shadow:0 40px 100px -30px rgba(12,18,38,.5);color:#0C1226;font-family:inherit}
-    .nr-ue::backdrop{background:rgba(12,18,38,.35)}
-    .nr-ue-innen{display:flex;flex-direction:column;max-height:calc(100vh - 32px)}
-    .nr-ue-kopf{padding:20px 22px 12px;border-bottom:1px solid rgba(28,42,123,.1)}
+    .nr-ue{margin:auto;border:0;padding:0;width:min(980px,calc(100% - 48px));max-height:calc(100vh - 64px);overflow:hidden;border-radius:20px;box-shadow:0 40px 100px -30px rgba(12,18,38,.5);color:#0C1226;font-family:inherit}
+    .nr-ue::backdrop{background:rgba(12,18,38,.38);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+    .nr-ue-innen{display:flex;flex-direction:column;max-height:calc(100vh - 64px)}
+    .nr-ue-kopf{padding:22px 26px 14px;border-bottom:1px solid rgba(28,42,123,.1);background:linear-gradient(180deg,#F4F6FD,#fff)}
     .nr-ue-kopf .zeile1{display:flex;align-items:center;justify-content:space-between;gap:12px}
     .nr-ue-kopf h3{margin:0;font-size:1.35rem}
     .nr-ue-zu{border:0;background:#EEF1F8;border-radius:100px;width:36px;height:36px;font-size:1.2rem;cursor:pointer;color:#1C2A7B}
@@ -487,12 +489,17 @@
     .nr-ue-summen div{background:#F6F8FC;border-radius:12px;padding:10px 12px}
     .nr-ue-summen b{display:block;font-size:1.05rem}
     .nr-ue-summen span{font-size:.78rem;color:#47506B}
+    .nr-ue-summen .blau{background:rgba(59,85,230,.08)}.nr-ue-summen .blau b{color:#1C2A7B}
+    .nr-ue-summen .rot{background:rgba(229,72,77,.08)}.nr-ue-summen .rot b{color:#C7383D}
+    .nr-ue-summen .gruen{background:rgba(14,159,110,.09)}.nr-ue-summen .gruen b{color:#0A7150}
     .nr-ue-filter{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
     .nr-ue-filter::-webkit-scrollbar{display:none}
     .nr-ue-filter button{border:1.5px solid rgba(28,42,123,.15);background:#fff;border-radius:100px;padding:7px 12px;font:500 .86rem inherit;font-family:inherit;white-space:nowrap;cursor:pointer;color:#0C1226}
     .nr-ue-filter button.an{border-color:#3B55E6;background:rgba(59,85,230,.08);color:#1C2A7B;font-weight:600}
     .nr-ue-suche{width:100%;box-sizing:border-box;margin-top:10px;font:inherit;font-size:16px;padding:10px 12px;border:1.5px solid rgba(28,42,123,.15);border-radius:10px}
-    .nr-ue-liste{overflow-y:auto;padding:12px 22px 22px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+    .nr-ue-liste{overflow-y:auto;padding:16px 26px 26px;display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:12px;align-content:start;-webkit-overflow-scrolling:touch}
+    .nr-ue-liste > .nr-ue-leer{grid-column:1/-1}
+    .nr-ue-karte{transition:box-shadow .2s,border-color .2s}.nr-ue-karte:hover{border-color:rgba(59,85,230,.35);box-shadow:0 10px 26px -18px rgba(28,42,123,.5)}
     .nr-ue-karte{border:1px solid rgba(28,42,123,.1);border-radius:14px;padding:14px 16px}
     .nr-ue-karte .oben{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
     .nr-ue-karte .oben b{font-size:1.02rem}
@@ -514,6 +521,9 @@
     @media (max-width:640px){
       .nr-ue{width:100%;max-width:100%;height:100%;max-height:100%;margin:0;border-radius:0}
       .nr-ue-innen{max-height:100%;height:100%}
+      .nr-ue[open]{animation:nrHoch .36s cubic-bezier(.2,.9,.3,1)}
+      @keyframes nrHoch{from{transform:translateY(100%)}to{transform:none}}
+      .nr-ue-liste{grid-template-columns:minmax(0,1fr)}
       .nr-ue-kopf{padding:calc(14px + env(safe-area-inset-top)) 16px 10px}
       .nr-ue-liste{padding:10px 16px calc(24px + env(safe-area-inset-bottom))}
       .nr-ue-summen{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -560,8 +570,8 @@
       d.querySelector('[data-summen]').innerHTML =
         `<div><b>${alle_.length}</b><span>Rechnungen</span></div>` +
         `<div><b>${alle_.filter((r) => !r.gesendet).length}</b><span>Nicht gesendet</span></div>` +
-        `<div><b>${chfText(summe(offen))}</b><span>Offen${ueber.length ? `, davon ${ueber.length} überfällig` : ''}</span></div>` +
-        `<div><b>${chfText(summe(alle_.filter((r) => r.bezahlt)))}</b><span>Bezahlt</span></div>`;
+        `<div class="${ueber.length ? 'rot' : 'blau'}"><b>${chfText(summe(offen))}</b><span>Offen${ueber.length ? `, davon ${ueber.length} überfällig` : ''}</span></div>` +
+        `<div class="gruen"><b>${chfText(summe(alle_.filter((r) => r.bezahlt)))}</b><span>Bezahlt</span></div>`;
       d.querySelectorAll('[data-f]').forEach((b) => b.classList.toggle('an', b.getAttribute('data-f') === ueFilter));
       const s = ueSuche.trim().toLowerCase();
       const liste = alle_.filter((r) => ({
