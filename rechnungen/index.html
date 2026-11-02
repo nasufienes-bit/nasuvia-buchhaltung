@@ -13,7 +13,7 @@
 <script src="../lib/supabase.js"></script>
 <script src="../lib/html2canvas.min.js"></script>
 <script src="../lib/jspdf.umd.min.js"></script>
-<script src="../navi.js" data-hier="rechnungen"></script>
+<script src="../navi.js" data-hier="rechnungen" data-titel="Rechnungen"></script>
 <script src="dienst.js"></script>
 <style>
 @font-face {
@@ -155,8 +155,8 @@ select { appearance: none; cursor: pointer;
 
 /* Erstellen-Knopf */
 .btn-erstellen {
-  background: linear-gradient(135deg, var(--elektrik), var(--blau));
-  color: #fff; box-shadow: 0 4px 14px rgba(28, 42, 123, 0.22);
+  background: var(--elektrik);
+  color: #fff; box-shadow: 0 10px 24px -10px rgba(59, 85, 230, .8);
 }
 .btn-erstellen:hover:not(:disabled) { filter: brightness(1.06); }
 .btn-erstellen.bereit { background: var(--papier); color: var(--blau); box-shadow: none; border: 1px solid rgba(28, 42, 123, 0.16); }
@@ -254,11 +254,11 @@ body.server .archiv-card { display: flex; }
 .link-btn.center { align-self: center; }
 
 .mini-btn {
-  border: 1px solid var(--hairline-strong); background: var(--karte); border-radius: var(--r-feld);
-  padding: 7px 13px; cursor: pointer; color: var(--tinte); font-weight: 500; font-size: 13px;
+  border: 0; box-shadow: inset 0 0 0 1.5px var(--hairline); background: var(--karte); border-radius: 100px;
+  padding: 8px 14px; cursor: pointer; color: var(--tinte); font-weight: 600; font-size: 13.5px;
   transition: background .15s, border-color .15s; white-space: nowrap;
 }
-.mini-btn:hover { background: var(--papier); border-color: var(--elektrik); color: var(--blau); }
+.mini-btn:hover { background: var(--papier); box-shadow: inset 0 0 0 1.5px var(--hairline-strong); }
 .mini-btn.primary { background: var(--elektrik); border-color: var(--elektrik); color: #fff; }
 .mini-btn.primary:hover { background: var(--blau); border-color: var(--blau); color: #fff; }
 
@@ -331,17 +331,17 @@ body.server .archiv-card { display: flex; }
 /* Aktionen */
 .actions { display: flex; flex-direction: column; gap: 9px; }
 .btn {
-  border: 0; border-radius: 11px; padding: 12px 18px; cursor: pointer;
-  font-weight: 600; font-size: 14.5px;
+  border: 0; border-radius: 100px; padding: 12px 20px; cursor: pointer;
+  font-weight: 600; font-size: 15px;
   transition: transform .15s, box-shadow .15s, background .15s, border-color .15s;
   display: flex; align-items: center; justify-content: center; gap: 9px;
 }
 .btn svg { width: 16px; height: 16px; }
-.btn-primary { background: var(--elektrik); color: #fff; box-shadow: 0 8px 20px -10px rgba(59, 85, 230, 0.9); }
+.btn-primary { background: var(--elektrik); color: #fff; box-shadow: 0 10px 24px -10px rgba(59, 85, 230, .8); }
 .btn-primary:hover:not(:disabled) { background: var(--blau); transform: translateY(-1px); }
 .btn-primary:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
-.btn-secondary { background: var(--karte); color: var(--tinte); border: 1px solid var(--hairline-strong); }
-.btn-secondary:hover { border-color: var(--elektrik); color: var(--blau); }
+.btn-secondary { background: var(--karte); color: var(--tinte); border: 0; box-shadow: inset 0 0 0 1.5px var(--hairline); }
+.btn-secondary:hover { box-shadow: inset 0 0 0 1.5px var(--hairline-strong); }
 
 .advanced[hidden] { display: none; }
 
@@ -561,6 +561,11 @@ body.nur-blatt .preview { padding: 0; background: #fff; min-height: 0; }
 body.nur-blatt .sheet-wrap { box-shadow: none; border-radius: 0; width: 210mm !important; height: 297mm !important; }
 body.nur-blatt .sheet { transform: none !important; }
 
+/* Mit der gemeinsamen Kopfzeile oben */
+body.nv-mit-kopf .app { min-height: calc(100vh - 64px); }
+body.nv-mit-kopf .panel { top: 64px; max-height: calc(100vh - 64px); }
+body.nv-mit-kopf .preview { min-height: calc(100vh - 64px); }
+
 /* ============ RESPONSIVE ============ */
 @media (max-width: 1200px) {
   .app { grid-template-columns: minmax(0, 1fr); }
@@ -602,7 +607,7 @@ body.nur-blatt .sheet { transform: none !important; }
 
   <!-- ============ STEUERPULT ============ -->
   <aside class="panel">
-    <div class="panel-head">
+    <div class="panel-head nv-weg">
       <img class="panel-logo" id="panelLogo" alt="Nasuvia" />
       <span class="panel-title">Rechnungen</span>
     </div>

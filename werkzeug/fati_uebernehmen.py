@@ -70,7 +70,7 @@ if not F['mail'] and not F['web']:
 t = t.replace("'nasuvia.", "'fati.")
 assert not re.search(r'(?i)nasuvia\.ch|glasfaser|CHE-345|Tössfeld', t), 'Nasuvia-Angaben übrig'
 t = ers(t, '<script src="../lib/supabase.js"></script>\n', '')
-t = ers(t, '<script src="../navi.js" data-hier="rechnungen"></script>\n', '')
+t = ers(t, '<script src="../navi.js" data-hier="rechnungen" data-titel="Rechnungen"></script>\n', '')
 assert 'navi.js' not in t
 # Farben aus dem Fati-Logo statt Nasuvia-Blau
 FARBEN = [('#1C2A7B', '#0A4F4E'), ('#3B55E6', '#0E7C7B'), ('#0C1226', '#10242C'),

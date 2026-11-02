@@ -487,7 +487,6 @@
     .nr-zurueck{display:inline-flex;align-self:flex-start;align-items:center;gap:4px;margin:0 0 10px 2px;font:600 .9rem inherit;font-family:inherit;color:#3B55E6;text-decoration:none;padding:6px 12px 6px 6px;border-radius:100px;background:rgba(59,85,230,.08)}
     .nr-wege{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px 2px}
     .nr-wege .nr-zurueck{margin:0}
-    .nr-wege .nv-knopf{height:36px;font-size:.88rem}
     .nr-zurueck:hover{background:rgba(59,85,230,.14)}
     .nr-zurueck svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
     .nr-ue-knopf svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -694,8 +693,10 @@
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'nr-ue-knopf';
-    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Übersicht';
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Übersicht';
     b.onclick = uebersichtZeigen;
+    // Mit der gemeinsamen Kopfzeile sitzt der Knopf dort rechts, Menü und Logo stehen schon links
+    if (window.NasuviaNavi && window.NasuviaNavi.rechts) { window.NasuviaNavi.rechts(b); return; }
     kopf.appendChild(b);
     // Zurück zur Buchhaltung, gleich über dem Logo
     const z = document.createElement('a');
@@ -708,8 +709,7 @@
     a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Admin';
     const reihe = document.createElement('div');
     reihe.className = 'nr-wege';
-    if (window.NasuviaNavi) reihe.append(window.NasuviaNavi.knopf('Menü'));
-    else reihe.append(z, a);
+    reihe.append(z, a);
     kopf.parentNode.insertBefore(reihe, kopf);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', uebersichtKnopf); else uebersichtKnopf();

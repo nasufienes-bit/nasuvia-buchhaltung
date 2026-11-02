@@ -1,10 +1,13 @@
 // Gemeinsames Menü für Admin, Offerten, Rechnungen und Buchhaltung.
 // Ein Knopf mit zwei Strichen öffnet links eine Seitenleiste, von der aus man zwischen allen Bereichen wechselt.
-// Einbinden: <script src="navi.js" data-hier="rechnungen" data-einfuegen=".kopf" data-schwebend="mobil"></script>
+// Dazu eine einheitliche Kopfzeile: Menü-Knopf, Logo und Bereich links, die Knöpfe des Bereichs rechts.
+// Einbinden: <script src="navi.js" data-hier="rechnungen" data-titel="Rechnungen" data-rechts="#kopfRechts"></script>
 //   data-hier       welcher Bereich gerade offen ist (wird hervorgehoben)
-//   data-einfuegen  Element, in das der Knopf vorne eingesetzt wird (optional)
-//   data-schwebend  "mobil" oder "immer": zusätzlich ein schwebender Knopf oben rechts (optional)
-// Ohne data-einfuegen kann die Seite den Knopf selbst holen: NasuviaNavi.knopf('Menü')
+//   data-titel      Name des Bereichs in der Kopfzeile
+//   data-rechts     Element, dessen Inhalt rechts in die Kopfzeile wandert (optional)
+//   data-kopf-in    Element, an dessen Anfang die Kopfzeile kommt (sonst ganz oben im body)
+// Die Seite kann eigene Knöpfe rechts anfügen: NasuviaNavi.rechts(element)
+// Elemente mit der Klasse nv-weg werden ausgeblendet, sobald die Kopfzeile da ist.
 (function(){
   var skript = document.currentScript || {}, ds = skript.dataset || {};
   var MARKE = 'Nasuvia';
@@ -31,6 +34,18 @@
     '.nv-knopf:hover svg .nv-zwei{transform:translateX(3px)}',
     '.nv-schwebend{position:fixed;top:max(12px,env(safe-area-inset-top));right:14px;z-index:60}',
     '@media (min-width:821px){.nv-schwebend.nv-mobil{display:none}}',
+    '.nv-kopfzeile{position:sticky;top:0;z-index:50;height:64px;background:rgba(247,249,253,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(28,42,123,.1);font-family:"League Spartan",-apple-system,system-ui,sans-serif}',
+    '.nv-kz{height:64px;display:flex;align-items:center;gap:12px;padding:0 clamp(14px,3vw,28px)}',
+    '.nv-logo{display:inline-flex;align-items:center;gap:5px;text-decoration:none;padding:6px 8px 6px 4px;border-radius:100px}',
+    '.nv-logo i{width:15px;height:15px;border-radius:50%;background:#1C2A7B;flex:none}',
+    '.nv-logo img{height:18px;width:auto;display:block}',
+    '.nv-bereich{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.68rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;line-height:1;background:#EEF1F8;color:#1C2A7B;border-radius:100px;padding:6px 10px}',
+    '.nv-rechts{margin-left:auto;display:flex;gap:4px;align-items:center}',
+    '.nv-rechts button,.nv-rechts a{display:inline-flex;align-items:center;gap:7px;height:40px;margin:0;padding:0 14px;border:0;border-radius:100px;background:none;box-shadow:none;color:#0C1226;font:500 .95rem "League Spartan",-apple-system,system-ui,sans-serif;text-decoration:none;white-space:nowrap;cursor:pointer;transition:background .2s}',
+    '.nv-rechts button:hover,.nv-rechts a:hover{background:#EEF1F8}',
+    '.nv-rechts svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
+    '.nv-mit-kopf .nv-weg{display:none!important}',
+    '@media (max-width:520px){.nv-bereich{display:none}.nv-rechts button,.nv-rechts a{padding:0 10px}}',
     '.nv-hinten{position:fixed;inset:0;z-index:9998;background:rgba(12,18,38,.32);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}',
     '.nv-leiste{position:fixed;top:0;bottom:0;left:0;z-index:9999;width:min(320px,86vw);background:#F7F9FD;border-radius:0 26px 26px 0;box-shadow:30px 0 80px -30px rgba(12,18,38,.5);transform:translateX(-104%);transition:transform .42s cubic-bezier(.2,.9,.3,1);display:flex;flex-direction:column;padding:max(18px,env(safe-area-inset-top)) 16px max(18px,env(safe-area-inset-bottom));font-family:inherit;color:#0C1226;overflow-y:auto}',
     '.nv-offen .nv-hinten{opacity:1;visibility:visible}',
@@ -110,8 +125,26 @@
   }
   window.NasuviaNavi = { knopf: knopf, oeffnen: oeffnen, schliessen: schliessen };
 
+  // Kopfzeile
+  var kopfzeile = document.createElement('header'), rechtsSlot = document.createElement('div');
+  kopfzeile.className = 'nv-kopfzeile';
+  rechtsSlot.className = 'nv-rechts';
+  function rechts(el){ rechtsSlot.appendChild(el); return el; }
+  window.NasuviaNavi.rechts = rechts;
+
   function einbauen(){
     document.body.appendChild(huelle);
+    if (ds.titel) {
+      var kz = document.createElement('div'); kz.className = 'nv-kz';
+      kz.appendChild(knopf());
+      kz.insertAdjacentHTML('beforeend', '<a class="nv-logo" href="https://www.nasuvia.ch/admin/" aria-label="Nasuvia Admin"><i></i><img src="https://www.nasuvia.ch/logo-wort.png" alt="Nasuvia" width="94" height="18"></a><span class="nv-bereich">' + ds.titel + '</span>');
+      kz.appendChild(rechtsSlot);
+      kopfzeile.appendChild(kz);
+      if (ds.rechts) { var quelle = document.querySelector(ds.rechts); if (quelle) { while (quelle.firstChild) rechtsSlot.appendChild(quelle.firstChild); quelle.remove(); } }
+      var ort = ds.kopfIn ? document.querySelector(ds.kopfIn) : document.body;
+      ort.insertBefore(kopfzeile, ort.firstChild);
+      document.body.classList.add('nv-mit-kopf');
+    }
     if (ds.einfuegen) [].forEach.call(document.querySelectorAll(ds.einfuegen), function(z){ z.insertBefore(knopf(), z.firstChild); });
     if (ds.schwebend) {
       var s = knopf();

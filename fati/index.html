@@ -559,6 +559,11 @@ body.nur-blatt .preview { padding: 0; background: #fff; min-height: 0; }
 body.nur-blatt .sheet-wrap { box-shadow: none; border-radius: 0; width: 210mm !important; height: 297mm !important; }
 body.nur-blatt .sheet { transform: none !important; }
 
+/* Mit der gemeinsamen Kopfzeile oben */
+body.nv-mit-kopf .app { min-height: calc(100vh - 64px); }
+body.nv-mit-kopf .panel { top: 64px; max-height: calc(100vh - 64px); }
+body.nv-mit-kopf .preview { min-height: calc(100vh - 64px); }
+
 /* ============ RESPONSIVE ============ */
 @media (max-width: 1200px) {
   .app { grid-template-columns: minmax(0, 1fr); }
@@ -600,7 +605,7 @@ body.nur-blatt .sheet { transform: none !important; }
 
   <!-- ============ STEUERPULT ============ -->
   <aside class="panel">
-    <div class="panel-head">
+    <div class="panel-head nv-weg">
       <img class="panel-logo" id="panelLogo" alt="Fati Sanitär und Hauswartungen GmbH" />
       <span class="panel-title">Rechnungen</span>
     </div>

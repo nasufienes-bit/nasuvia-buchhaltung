@@ -485,7 +485,6 @@
     .nr-zurueck{display:inline-flex;align-self:flex-start;align-items:center;gap:4px;margin:0 0 10px 2px;font:600 .9rem inherit;font-family:inherit;color:#0E7C7B;text-decoration:none;padding:6px 12px 6px 6px;border-radius:100px;background:rgba(14,124,123,.08)}
     .nr-wege{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px 2px}
     .nr-wege .nr-zurueck{margin:0}
-    .nr-wege .nv-knopf{height:36px;font-size:.88rem}
     .nr-zurueck:hover{background:rgba(14,124,123,.14)}
     .nr-zurueck svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
     .nr-ue-knopf svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -686,8 +685,10 @@
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'nr-ue-knopf';
-    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Übersicht';
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>Übersicht';
     b.onclick = uebersichtZeigen;
+    // Mit der gemeinsamen Kopfzeile sitzt der Knopf dort rechts, Menü und Logo stehen schon links
+    if (window.NasuviaNavi && window.NasuviaNavi.rechts) { window.NasuviaNavi.rechts(b); return; }
     kopf.appendChild(b);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', uebersichtKnopf); else uebersichtKnopf();
