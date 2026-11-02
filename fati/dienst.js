@@ -485,6 +485,7 @@
     .nr-zurueck{display:inline-flex;align-self:flex-start;align-items:center;gap:4px;margin:0 0 10px 2px;font:600 .9rem inherit;font-family:inherit;color:#0E7C7B;text-decoration:none;padding:6px 12px 6px 6px;border-radius:100px;background:rgba(14,124,123,.08)}
     .nr-wege{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px 2px}
     .nr-wege .nr-zurueck{margin:0}
+    .nr-wege .nv-knopf{height:36px;font-size:.88rem}
     .nr-zurueck:hover{background:rgba(14,124,123,.14)}
     .nr-zurueck svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
     .nr-ue-knopf svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}

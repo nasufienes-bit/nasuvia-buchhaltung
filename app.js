@@ -209,7 +209,7 @@
     return `
     <div class="kopf">
       <div><h1>Übersicht</h1><p class="unter">Alle Beträge ohne MWST</p></div>
-      <div class="kopf-aktionen">${jahrWahl()}<a class="btn" href="https://www.nasuvia.ch/admin/" style="text-decoration:none">Admin</a><a class="btn" href="rechnungen/" style="text-decoration:none">Rechnung schreiben</a><button class="btn btn-haupt nur-pc" onclick="NB.neu()">+ Neue Buchung</button></div>
+      <div class="kopf-aktionen">${jahrWahl()}<a class="btn" href="rechnungen/" style="text-decoration:none">Rechnung schreiben</a><button class="btn btn-haupt nur-pc" onclick="NB.neu()">+ Neue Buchung</button></div>
     </div>
     <div class="raster raster-4">
       <div class="card kennzahl"><div class="label">Einnahmen</div><div class="wert">${chf(s.ein)}</div><div class="klein">CHF im Jahr ${Z.jahr}</div></div>
