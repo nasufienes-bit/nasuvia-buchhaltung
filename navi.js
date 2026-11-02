@@ -16,9 +16,9 @@
       icon: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>' },
     { id: 'offerten', name: 'Offerten', text: 'Erstellen, ablegen, senden', href: 'https://www.nasuvia.ch/admin/offerten/',
       icon: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h6M9 16h3"/><path d="m14.5 16.5 1.5 1.5 3-3"/>' },
-    { id: 'rechnungen', name: 'Rechnungen', text: 'Schreiben und versenden', href: 'https://nasufienes-bit.github.io/nasuvia-buchhaltung/rechnungen/',
+    { id: 'rechnungen', name: 'Rechnungen', text: 'Schreiben und versenden', href: 'https://www.nasuvia.ch/buchhaltung/rechnungen/',
       icon: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>' },
-    { id: 'buchhaltung', name: 'Buchhaltung', text: 'Einnahmen, Ausgaben, MWST', href: 'https://nasufienes-bit.github.io/nasuvia-buchhaltung/',
+    { id: 'buchhaltung', name: 'Buchhaltung', text: 'Einnahmen, Ausgaben, MWST', href: 'https://www.nasuvia.ch/buchhaltung/',
       icon: '<path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2 2 2 0 0 0 2 2h13"/><path d="M9 8h6M9 12h4"/>' }
   ];
   var WEBSITE = { name: 'Website', text: 'www.nasuvia.ch', href: 'https://www.nasuvia.ch/' };
@@ -45,6 +45,8 @@
     '.nv-rechts button:hover,.nv-rechts a:hover{background:#EEF1F8}',
     '.nv-rechts svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}',
     '.nv-mit-kopf .nv-weg{display:none!important}',
+    '.nv-umzug{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 10px;padding:10px 16px;background:#1C2A7B;color:#fff;text-decoration:none;font:500 .92rem "League Spartan",-apple-system,system-ui,sans-serif;text-align:center}',
+    '.nv-umzug span{color:#8FA6FF;font-weight:600}',
     '@media (max-width:520px){.nv-bereich{display:none}.nv-rechts button,.nv-rechts a{padding:0 10px}}',
     '.nv-hinten{position:fixed;inset:0;z-index:9998;background:rgba(12,18,38,.32);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}',
     '.nv-leiste{position:fixed;top:0;bottom:0;left:0;z-index:9999;width:min(320px,86vw);background:#F7F9FD;border-radius:0 26px 26px 0;box-shadow:30px 0 80px -30px rgba(12,18,38,.5);transform:translateX(-104%);transition:transform .42s cubic-bezier(.2,.9,.3,1);display:flex;flex-direction:column;padding:max(18px,env(safe-area-inset-top)) 16px max(18px,env(safe-area-inset-bottom));font-family:inherit;color:#0C1226;overflow-y:auto}',
@@ -144,6 +146,14 @@
       var ort = ds.kopfIn ? document.querySelector(ds.kopfIn) : document.body;
       ort.insertBefore(kopfzeile, ort.firstChild);
       document.body.classList.add('nv-mit-kopf');
+    }
+    // Alte Adresse: Hinweis auf die neue unter nasuvia.ch
+    if (/github\.io$/.test(location.hostname) && /nasuvia-buchhaltung/.test(location.pathname)) {
+      var neu = 'https://www.nasuvia.ch/buchhaltung/' + location.pathname.replace(/^.*nasuvia-buchhaltung\//, '');
+      var h = document.createElement('a');
+      h.href = neu; h.className = 'nv-umzug';
+      h.innerHTML = '<b>Neue Adresse:</b> www.nasuvia.ch/buchhaltung <span>Jetzt öffnen →</span>';
+      document.body.insertBefore(h, document.body.firstChild);
     }
     if (ds.einfuegen) [].forEach.call(document.querySelectorAll(ds.einfuegen), function(z){ z.insertBefore(knopf(), z.firstChild); });
     if (ds.schwebend) {
