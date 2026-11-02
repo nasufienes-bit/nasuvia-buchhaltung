@@ -110,8 +110,8 @@ d = ers(d, ".nr-status{position:fixed;", ".nr-status{display:none!important;posi
 d = re.sub(r"      if \(!liste\.length && !alle_\.length\) \{.*?\n        return;\n      \}\n",
            "      if (!liste.length && !alle_.length) { box.innerHTML = '<p class=\"nr-ue-leer\">Noch keine Rechnungen. Sobald Sie eine Rechnung sichern, erscheint sie hier.</p>'; return; }\n", d, flags=re.S)
 assert 'Rechnungen vom Mac übernehmen' not in d.split('function importieren')[0].split('uebersichtZeigen')[1]
-d = re.sub(r"    // Zurück zur Buchhaltung, gleich über dem Logo\n.*?kopf\.parentNode\.insertBefore\(z, kopf\);\n", '', d, flags=re.S)
-assert 'Zur Buchhaltung' not in d
+d = re.sub(r"    // Zurück zur Buchhaltung, gleich über dem Logo\n.*?kopf\.parentNode\.insertBefore\(reihe, kopf\);\n", '', d, flags=re.S)
+assert 'Zur Buchhaltung' not in d and 'nasuvia.ch/admin' not in d
 for alt, neu in FARBEN:
     d = d.replace(alt, neu).replace(alt.lower(), neu)
 (ZIEL / 'dienst.js').write_text(d)

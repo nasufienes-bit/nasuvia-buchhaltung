@@ -485,6 +485,8 @@
   stilUebersicht.textContent = `
     .nr-ue-knopf{display:inline-flex;align-items:center;gap:7px;margin-left:auto;border:0;cursor:pointer;font:600 .9rem inherit;font-family:inherit;color:#fff;background:linear-gradient(135deg,#3B55E6,#1C2A7B);border-radius:100px;padding:9px 15px;box-shadow:0 6px 16px -8px rgba(28,42,123,.7)}
     .nr-zurueck{display:inline-flex;align-self:flex-start;align-items:center;gap:4px;margin:0 0 10px 2px;font:600 .9rem inherit;font-family:inherit;color:#3B55E6;text-decoration:none;padding:6px 12px 6px 6px;border-radius:100px;background:rgba(59,85,230,.08)}
+    .nr-wege{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px 2px}
+    .nr-wege .nr-zurueck{margin:0}
     .nr-zurueck:hover{background:rgba(59,85,230,.14)}
     .nr-zurueck svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
     .nr-ue-knopf svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -699,7 +701,14 @@
     z.href = '../';
     z.className = 'nr-zurueck';
     z.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Zur Buchhaltung';
-    kopf.parentNode.insertBefore(z, kopf);
+    const a = document.createElement('a');
+    a.href = 'https://www.nasuvia.ch/admin/';
+    a.className = 'nr-zurueck';
+    a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Admin';
+    const reihe = document.createElement('div');
+    reihe.className = 'nr-wege';
+    reihe.append(z, a);
+    kopf.parentNode.insertBefore(reihe, kopf);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', uebersichtKnopf); else uebersichtKnopf();
 
